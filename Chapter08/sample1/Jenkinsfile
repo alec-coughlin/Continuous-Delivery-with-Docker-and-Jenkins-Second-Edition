@@ -1,90 +1,98 @@
-pipeline {
-     agent any
-     triggers {
-          pollSCM('* * * * *')
-     }
-     stages {
-          stage("Compile") {
-               steps {
-                    sh "./gradlew compileJava"
-               }
-          }
-          stage("Unit test") {
-               steps {
-                    sh "./gradlew test"
-               }
-          }
-          stage("Code coverage") {
-               steps {
-                    sh "./gradlew jacocoTestReport"
-                    sh "./gradlew jacocoTestCoverageVerification"
-               }
-          }
-          stage("Static code analysis") {
-               steps {
-                    sh "./gradlew checkstyleMain"
-               }
-          }
-          stage("Package") {
-               steps {
-                    sh "./gradlew build"
-               }
-          }
-
-          stage("Docker build") {
-               steps {
-                    sh "docker build -t leszko/calculator:${BUILD_TIMESTAMP} ."
-               }
-          }
-
-          stage("Docker login") {
-               steps {
-                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'docker-hub-credentials',
-                               usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                         sh "docker login --username $USERNAME --password $PASSWORD"
-                    }
-               }
-          }
-
-          stage("Docker push") {
-               steps {
-                    sh "docker push leszko/calculator:${BUILD_TIMESTAMP}"
-               }
-          }
-
-          stage("Update version") {
-               steps {
-                    sh "sed  -i 's/{{VERSION}}/${BUILD_TIMESTAMP}/g' calculator.yaml"
-               }
-          }
-          
-          stage("Deploy to staging") {
-               steps {
-                    sh "kubectl config use-context staging"
-                    sh "kubectl apply -f hazelcast.yaml"
-                    sh "kubectl apply -f calculator.yaml"
-               }
-          }
-
-          stage("Acceptance test") {
-               steps {
-                    sleep 60
-                    sh "chmod +x acceptance-test.sh && ./acceptance-test.sh"
-               }
-          }
-
-          stage("Release") {
-               steps {
-                    sh "kubectl config use-context production"
-                    sh "kubectl apply -f hazelcast.yaml"
-                    sh "kubectl apply -f calculator.yaml"
-               }
-          }
-          stage("Smoke test") {
-              steps {
-                  sleep 60
-                  sh "chmod +x smoke-test.sh && ./smoke-test.sh"
-              }
-          }
-     }
+// Change this in stage("Compile")
+stage("Compile") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh 'chmod +x gradlew'
+            sh './gradlew compileJava'
+        }
+    }
 }
+
+// Change this in stage("Unit test")
+stage("Unit test") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh './gradlew test'
+        }
+    }
+}
+
+// Change this in stage("Code coverage")
+stage("Code coverage") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh './gradlew jacocoTestReport'
+            sh './gradlew jacocoTestCoverageVerification'
+        }
+    }
+}
+
+// Change this in stage("Static code analysis")
+stage("Static code analysis") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh './gradlew checkstyleMain'
+        }
+    }
+}
+
+// Change this in stage("Package")
+stage("Package") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh './gradlew build'
+        }
+    }
+}
+
+// Change this in stage("Docker build")
+stage("Docker build") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh "docker build -t leszko/calculator:${BUILD_TIMESTAMP} ."
+        }
+    }
+}
+
+// Change this in stage("Update version")
+stage("Update version") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh "sed -i 's/{{VERSION}}/${BUILD_TIMESTAMP}/g' calculator.yaml"
+        }
+    }
+}
+
+// Change this in stage("Deploy to staging")
+stage("Deploy to staging") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh "kubectl config use-context staging"
+            sh "kubectl apply -f hazelcast.yaml"
+            sh "kubectl apply -f calculator.yaml"
+        }
+    }
+}
+
+// Change this in stage("Acceptance test")
+stage("Acceptance test") {
+    steps {
+        dir('Chapter08/sample1') {
+            sleep 60
+            sh "chmod +x acceptance-test.sh && ./acceptance-test.sh"
+        }
+    }
+}
+
+// Change this in stage("Release")
+stage("Release") {
+    steps {
+        dir('Chapter08/sample1') {
+            sh "kubectl config use-context production"
+            sh "kubectl apply -f hazelcast.yaml"
+            sh "kubectl apply -f calculator.yaml"
+        }
+    }
+}
+
+// Change this in stage
