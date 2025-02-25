@@ -25,6 +25,21 @@ pipeline {
                     sh "cd Chapter08/sample1 && ./gradlew checkstyleMain"
                }
           }
+          stage('Checkstyle analysis') {
+              steps {
+                  sh """
+                      cd Chapter08/sample1
+                      ./gradlew checkstyleMain
+                  """
+                  publishHTML (
+                      target: [
+                          reportDir: 'Chapter08/sample1/build/reports/checkstyle',
+                          reportFiles: 'main.html',
+                          reportName: "jacoco checkstyle"
+                      ]
+                  )
+              }
+          }
           stage("Package") {
                steps {
                     sh "cd Chapter08/sample1 && ./gradlew build"
