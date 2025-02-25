@@ -51,7 +51,7 @@ pipeline {
 
           stage("Docker build") {
                steps {
-                    sh "cd Chapter08/sample1 && docker build -t leszko/calculator:${BUILD_TIMESTAMP} ."
+                    sh "cd Chapter08/sample1 && docker build -t aleccoughlin/calculator:${BUILD_TIMESTAMP} ."
                }
           }
 
