@@ -19,7 +19,11 @@ pipeline {
     }
     stage('Non Main or Feature Branch Failure') {
       when {
-        not { branch 'master' }
+        not {
+          expression { 
+            return env.BRANCH_NAME.contains('feature') || env.BRANCH_NAME.contains('master')
+          }
+        }
       }
       steps {
         error('pipeline failure')
