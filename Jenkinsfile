@@ -1,26 +1,29 @@
 pipeline {
-  agent any
+  agent { label 'docker-agent' }
   stages {
-    stage('Build') {
+    stage('Main Tests') {
+      when { branch 'master' }
       steps {
-        sh 'cd Chapter08/sample1 && ./gradlew test'
+        sh 'cd Chapter08/sample1 && ./gradlew test && ./gradlew jacocoTestCoverageVerification && ./gradlew checkstyleMain checkstyleTest'
       }
     }
-    stage('Check java Changes') {
+    stage('Feature Tests') {
       when {
-        changeset "**/*.java"
+        expression {
+          return env.BRANCH_NAME.contains('feature')
+        }
       }
       steps {
-        sh 'cd Chapter08/sample1 && ./gradlew jacocoTestCoverageVerification && ./gradlew checkstyleMain checkstyleTest'
+        sh 'cd Chapter08/sample1&& ./gradlew test && ./gradlew checkstyleMain checkstyleTest'
       }
     }
-  }
-  post {
-    failure {
-      echo 'pipeline failure'
-    }
-    success {
-      echo 'pipeline ran perfectly'
+    stage('Non Main or Feature Branch Failure') {
+      when {
+        not { branch 'main' }
+      }
+      steps {
+        error('pipeline failure')
+      }
     }
   }
 }
