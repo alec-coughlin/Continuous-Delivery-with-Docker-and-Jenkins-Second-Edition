@@ -19,7 +19,7 @@ pipeline {
     }
     stage('Non Main or Feature Branch Failure') {
       when {
-        not { branch 'main' }
+        not { branch 'master' }
       }
       steps {
         error('pipeline failure')
