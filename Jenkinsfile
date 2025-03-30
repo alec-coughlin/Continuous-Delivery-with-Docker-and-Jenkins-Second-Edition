@@ -4,30 +4,33 @@ pipeline {
     stage('Main Tests') {
       when { branch 'master' }
       steps {
-        sh 'cd Chapter08/sample1 && ./gradlew test && ./gradlew jacocoTestCoverageVerification && ./gradlew checkstyleMain checkstyleTest'
+        sh 'cd Chapter08/sample1 && ./gradlew test checkstyleMain checkstyleTest && ./gradlew jacocoTestCoverageVerification && ./gradlew jacocoTestReport'
       }
     }
-    stage('Feature Tests') {
-      when {
-        expression {
-          return env.BRANCH_NAME.contains('feature')
-        }
-      }
-      steps {
-        sh 'cd Chapter08/sample1&& ./gradlew test && ./gradlew checkstyleMain checkstyleTest'
-      }
-    }
-    stage('Non Main or Feature Branch Failure') {
+    stage('Non Main Branch') {
       when {
         not {
-          expression { 
-            return env.BRANCH_NAME.contains('feature') || env.BRANCH_NAME.contains('master')
-          }
+          expression { branch 'master' }
         }
       }
       steps {
-        error('pipeline failure')
+        sh 'cd Chapter08/sample1 && ./gradlew test checkstyleMain checkstyleTest && ./gradlew jacocoTestReport'
       }
+    }
+  }
+  post {
+    success {
+      echo 'tests pass!'
+    }
+    failure {
+      echo 'tests fail!'
+    }
+    always {
+      publishHTML([
+        reportDir: 'Chapter08/sample1/build/reports/jacoco/test/html',
+        reportFiles: 'index.html',
+        reportName: 'JaCoCo Report'
+      ])
     }
   }
 }
