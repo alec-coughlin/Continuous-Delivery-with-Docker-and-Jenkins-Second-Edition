@@ -8,7 +8,7 @@ pipeline {
   stages {
     stage('Checkout code and prepare environment') {
       steps {
-        git url: 'https://github.com/dlambrig/Continuous-Delivery-with-Docker-and-Jenkins-Second-Edition.git'
+        git url: 'https://github.com/alec-coughlin/Continuous-Delivery-with-Docker-and-Jenkins-Second-Edition.git'
         sh """
           set -e
           cd ${PROJECT_DIR}
