@@ -16,6 +16,13 @@ pipeline {
         """
       }
     }
+    stage('Build') {
+      steps {
+        sh """
+          set -e
+          cd ${PROJECT_DIR}
+          ./gradlew build
+        """
     stage('Run Tests') {
       steps {
         script {
