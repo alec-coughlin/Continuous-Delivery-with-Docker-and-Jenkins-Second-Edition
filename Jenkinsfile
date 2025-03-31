@@ -66,7 +66,7 @@ pipeline {
             sh """
               set -e
               cd ${PROJECT_DIR}
-              export DOCKER_TLS_VERIFY=0 && echo "\$DOCKER_PASS" | docker login \$REGISTRY -u \$DOCKER_USER --password-stdin
+              echo "\$DOCKER_PASS" | docker login \$REGISTRY -u \$DOCKER_USER --password-stdin
               docker build -t ${imageName} .
               docker tag ${imageName} ${REGISTRY_HOST}/${DOCKER_USER}/${imageName}:${imageTag}
               docker push ${REGISTRY_HOST}/${DOCKER_USER}/${imageName}:${imageTag}
