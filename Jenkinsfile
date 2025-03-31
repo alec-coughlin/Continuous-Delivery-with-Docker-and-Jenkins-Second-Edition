@@ -10,7 +10,7 @@ pipeline {
     stage('Non Main Branch') {
       when {
         not {
-          expression { branch 'master' }
+          branch 'master'
         }
       }
       steps {
