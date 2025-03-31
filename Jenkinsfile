@@ -23,6 +23,8 @@ pipeline {
           cd ${PROJECT_DIR}
           ./gradlew build
         """
+      }
+    }
     stage('Run Tests') {
       steps {
         script {
