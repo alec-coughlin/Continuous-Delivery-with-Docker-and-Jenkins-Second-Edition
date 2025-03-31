@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 /**
 *javadoc
 *comment edit new feature branch
+*comment to trigger PR
 */
 public class CalculatorTest {
      private Calculator calculator = new Calculator();
