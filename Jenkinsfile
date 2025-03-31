@@ -1,39 +1,86 @@
 pipeline {
-  agent { label 'docker-agent' }
+  agent {
+    docker {
+      image 'dlambrig/gradle-agent:latest'
+      args '-v /var/run/docker.sock:/var/run/docker.sock'
+      alwaysPull true
+      customWorkspace '/home/jenkins/.gradle/workspace'
+    }
+  }
+  environment {
+    REGISTRY = "https://localhost:5001"
+    REGISTRY_HOST = "localhost:5001"
+    PROJECT_DIR = "Chapter08/sample1"
+  }
   stages {
-    stage('Main Tests') {
-      when { branch 'master' }
+    stage('Checkout code and prepare environment') {
       steps {
-        sh 'cd Chapter08/sample1 && ./gradlew test checkstyleMain checkstyleTest && ./gradlew jacocoTestCoverageVerification && ./gradlew jacocoTestReport'
+        git url: 'https://github.com/dlambrig/Continuous-Delivery-with-Docker-and-Jenkins-Second-Edition.git'
+        sh """
+          set -e
+          cd ${PROJECT_DIR}
+          chmod +x gradlew
+        """
       }
     }
-    stage('Non Main Branch') {
+    stage('Run Tests') {
+      steps {
+        script {
+          if (env.BRANCH_NAME == 'master') {
+            sh """
+              set -e
+              cd ${PROJECT_DIR}
+              ./gradlew test checkstyleMain checkstyleTest
+              ./gradlew jacocoTestReport
+              ./gradlew jacocoTestCoverageVerification
+            """
+          } else if (env.BRANCH_NAME.contains('feature')) {
+            sh """
+              set -e
+              cd ${PROJECT_DIR}
+              ./gradlew test checkstyleMain checkstyleTest
+              ./gradlew jacocoTestReport
+            """
+          } else if (env.BRANCH_NAME.contains('playground')) {
+            sh """
+              set -e
+              cd ${PROJECT_DIR}
+              ./gradlew test checkstyleMain checkstyleTest
+              ./gradlew jacocoTestReport
+            """
+          }
+        }
+      }
+    }
+    stage('Build Container') {
       when {
-        not {
-          branch 'master'
+        expression {
+          return (env.BRANCH_NAME == 'master' || env.BRANCH_NAME.contains('feature'))
         }
       }
       steps {
-        sh 'cd Chapter08/sample1 && ./gradlew test checkstyleMain checkstyleTest && ./gradlew jacocoTestReport'
+        script {
+          def imageName = ""
+          def imageTag = ""
+          if (env.BRANCH_NAME == 'master') {
+            imageName = "calculator"
+            imageTag = "1.0"
+          } else if (env.BRANCH_NAME.contains('feature')) {
+            imageName = "calculator-feature"
+            imageTag = "0.1"
+          }
+          withCredentials([usernamePassword(credentialsId: 'docker-registry', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh """
+              set -e
+              cd ${PROJECT_DIR}
+              echo "\$DOCKER_PASS" | docker login \$REGISTRY -u \$DOCKER_USER --password-stdin
+              docker build -t ${imageName} .
+              docker tag ${imageName} ${REGISTRY_HOST}/${DOCKER_USER}/${imageName}:${imageTag}
+              docker push ${REGISTRY_HOST}/${DOCKER_USER}/${imageName}:${imageTag}
+            """
+          }
+        }
       }
-    }
-  }
-  post {
-    success {
-      echo 'tests pass!'
-    }
-    failure {
-      echo 'tests fail!'
-    }
-    always {
-      publishHTML([
-        reportDir: 'Chapter08/sample1/build/reports/jacoco/test/html',
-        reportFiles: 'index.html',
-        reportName: 'JaCoCo Report',
-        keepAll: true,
-        alwaysLinkToLastBuild: true,
-        allowMissing: false
-      ])
     }
   }
 }
