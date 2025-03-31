@@ -1,6 +1,5 @@
 pipeline {
   agent { docker-agent }
-  }
   environment {
     REGISTRY = "https://localhost:5001"
     REGISTRY_HOST = "localhost:5001"
