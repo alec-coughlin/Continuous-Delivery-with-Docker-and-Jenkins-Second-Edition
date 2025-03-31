@@ -1,7 +1,7 @@
 pipeline {
   agent { label 'docker-agent' }
   environment {
-    REGISTRY = "http://registry:5000"
+    REGISTRY = "https://registry:5000"
     REGISTRY_HOST = "registry:5000"
     PROJECT_DIR = "Chapter08/sample1"
   }
